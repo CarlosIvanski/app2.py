@@ -1,0 +1,36 @@
+from flask import Flask, render_template, redirect, url_for, request, flash
+
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
+
+# Simulando dados de usuários
+users = [
+    {'id': 1, 'name': 'John Doe', 'email': 'john.doe@example.com', 'phone': '(555) 123-4567'},
+    {'id': 2, 'name': 'Jane Smith', 'email': 'jane.smith@example.com', 'phone': '(555) 987-6543'},
+    {'id': 3, 'name': 'Emily Johnson', 'email': 'emily.johnson@example.com', 'phone': '(555) 456-7890'}
+]
+
+@app.route('/')
+def index():
+    return render_template('index.html', users=users)
+
+@app.route('/exclude/<int:user_id>', methods=['POST'])
+def exclude_user(user_id):
+    global users
+    users = [user for user in users if user['id'] != user_id]
+    flash(f'User with ID {user_id} has been excluded.', 'success')
+    return redirect(url_for('index'))
+
+@app.route('/edit/<int:user_id>', methods=['GET', 'POST'])
+def edit_user(user_id):
+    user = next((user for user in users if user['id'] == user_id), None)
+    if request.method == 'POST':
+        user['name'] = request.form['name']
+        user['email'] = request.form['email']
+        user['phone'] = request.form['phone']
+        flash(f'User with ID {user_id} has been updated.', 'success')
+        return redirect(url_for('index'))
+    return render_template('edit.html', user=user)
+
+if __name__ == '__main__':
+    app.run(debug=True)
